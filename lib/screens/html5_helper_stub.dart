@@ -12,3 +12,5 @@ Widget buildPlatformIframe(String viewId) {
 }
 
 void setupWebMessageListener(void Function(String message) onMessage) {}
+
+void openAuth0UniversalLogin(String serverDomain) {}

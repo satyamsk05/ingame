@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
+import 'html5_helper.dart';
 
 enum LoginStep { selectMethod, enterPhone, verifyOtp }
 
@@ -261,6 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
+    // Check backend Auth0 status or trigger Auth0 Universal Login
     final response = await ApiService.loginWithGoogle(
       email: 'satyam.gamer@gmail.com',
       name: 'Satyam Kumar',
@@ -274,9 +276,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (response != null && response['status'] == 'success') {
       widget.onLoginSuccess(response);
     } else {
-      setState(() {
-        _errorMessage = response?['message'] ?? 'Google Sign-In failed. Try again.';
-      });
+      // Trigger Auth0 Universal Hosted OAuth Login Flow
+      openAuth0UniversalLogin(ApiService.serverDomain);
     }
   }
 

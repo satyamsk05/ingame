@@ -29,3 +29,7 @@ void setupWebMessageListener(void Function(String message) onMessage) {
     onMessage(event.data.toString());
   });
 }
+
+void openAuth0UniversalLogin(String serverDomain) {
+  web.window.location.href = '$serverDomain/login';
+}

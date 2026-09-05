@@ -243,7 +243,7 @@ async function sendRealOtpGateway(phone, otp, channel) {
       }
       bodyParams.append('Body', `Your InGames Verification Code is: ${otp}`);
 
-      await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
+      const twRes = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
         method: 'POST',
         headers: {
           'Authorization': authHeader,
@@ -251,13 +251,21 @@ async function sendRealOtpGateway(phone, otp, channel) {
         },
         body: bodyParams.toString(),
       });
+
+      const twData = await twRes.json();
+      if (!twRes.ok) {
+        console.error(`⚠️ Twilio Error (${twData.code}):`, twData.message);
+        return { success: false, error: twData.message || 'Twilio Gateway Error' };
+      }
+
       console.log(`📱 Real Twilio OTP ${otp} dispatched to +91${phone} via ${channel}`);
-      return true;
+      return { success: true };
     }
   } catch (err) {
     console.error('⚠️ Real SMS Gateway error:', err.message);
+    return { success: false, error: err.message };
   }
-  return false;
+  return { success: false, error: 'SMS Gateway credentials missing in .env' };
 }
 
 // Auth Endpoint 1: Send Real OTP via SMS or WhatsApp
@@ -281,17 +289,20 @@ app.post('/api/auth/send-otp', async (req, res) => {
   };
 
   // Attempt real SMS / WhatsApp gateway dispatch
-  const dispatched = await sendRealOtpGateway(sanitizedPhone, otp, channel);
+  const dispatchResult = await sendRealOtpGateway(sanitizedPhone, otp, channel);
+
+  if (!dispatchResult.success) {
+    return res.status(400).json({
+      status: 'error',
+      message: dispatchResult.error,
+    });
+  }
 
   res.json({
     status: 'success',
-    message: dispatched 
-      ? `Real OTP sent successfully via ${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'}`
-      : `OTP generated for +91${sanitizedPhone}. (Configure SMS Gateway Key in .env for live SMS delivery)`,
+    message: `Real OTP sent successfully via ${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'}`,
     channel,
     phone: sanitizedPhone,
-    // Return OTP in JSON response when gateway key is not set for easy testing
-    otp: dispatched ? undefined : otp,
   });
 });
 

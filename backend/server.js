@@ -15,10 +15,33 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 5050;
 
+require('dotenv').config();
+const { auth, requiresAuth } = require('express-openid-connect');
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Auth0 Configuration (with graceful fallback)
+const auth0Config = {
+  authRequired: false,
+  auth0Logout: true,
+  secret: process.env.SECRET || 'a_default_secret_key_32_characters_long_for_auth0',
+  baseURL: process.env.BASE_URL || `http://localhost:${PORT}`,
+  clientID: process.env.CLIENT_ID || 'dummy_client_id',
+  issuerBaseURL: process.env.ISSUER_BASE_URL || 'https://auth0.com',
+};
+
+// Enable Auth0 middleware if configured
+if (process.env.CLIENT_ID && process.env.ISSUER_BASE_URL && process.env.CLIENT_ID !== 'your_auth0_client_id') {
+  try {
+    app.use(auth(auth0Config));
+    console.log('✅ Auth0 authentication enabled.');
+  } catch (err) {
+    console.warn('⚠️ Auth0 initialization deferred:', err.message);
+  }
+}
 
 // Health Check Route for Render / UptimeRobot keep-alive
 app.get('/health', (req, res) => {
@@ -26,6 +49,7 @@ app.get('/health', (req, res) => {
     success: true,
     message: 'Server is healthy',
     timestamp: new Date().toISOString(),
+    auth0Configured: Boolean(process.env.CLIENT_ID && process.env.ISSUER_BASE_URL)
   });
 });
 

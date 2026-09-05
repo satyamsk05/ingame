@@ -9,8 +9,10 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "express": "^4.19.2",
+    "express-oauth2-jwt-bearer": "^1.10.0",
+    "express-openid-connect": "^3.4.0",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {

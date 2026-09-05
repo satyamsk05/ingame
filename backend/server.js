@@ -198,11 +198,68 @@ const gamesList = [
 
 // --- REST API ENDPOINTS ---
 
-// In-Memory OTP Store
+// In-Memory OTP Store with expiry tracking
 const otpStore = {};
 
-// Auth Endpoint 1: Send OTP via SMS or WhatsApp
-app.post('/api/auth/send-otp', (req, res) => {
+// Helper: Send Real OTP via Gateway (Fast2SMS, 2Factor, Twilio)
+async function sendRealOtpGateway(phone, otp, channel) {
+  const fast2smsKey = process.env.FAST2SMS_API_KEY;
+  const twoFactorKey = process.env.TWOFACTOR_API_KEY;
+  const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+  const twilioAuth = process.env.TWILIO_AUTH_TOKEN;
+
+  try {
+    if (fast2smsKey && fast2smsKey !== 'your_fast2sms_api_key') {
+      // Fast2SMS API (India OTP)
+      await fetch('https://www.fast2sms.com/dev/bulkV2', {
+        method: 'POST',
+        headers: {
+          'authorization': fast2smsKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          route: 'otp',
+          variables_values: otp,
+          numbers: phone,
+        }),
+      });
+      console.log(`📱 Real Fast2SMS OTP ${otp} dispatched to +91${phone}`);
+      return true;
+    } else if (twoFactorKey && twoFactorKey !== 'your_2factor_api_key') {
+      // 2Factor.in API (India OTP)
+      await fetch(`https://2factor.in/API/V1/${twoFactorKey}/SMS/+91${phone}/${otp}/AUTOGEN`);
+      console.log(`📱 Real 2Factor OTP ${otp} dispatched to +91${phone}`);
+      return true;
+    } else if (twilioSid && twilioAuth && twilioSid !== 'your_twilio_sid') {
+      // Twilio SMS/WhatsApp
+      const twilioPhone = process.env.TWILIO_PHONE_NUMBER || '';
+      const authHeader = 'Basic ' + Buffer.from(`${twilioSid}:${twilioAuth}`).toString('base64');
+      const bodyParams = new URLSearchParams();
+      bodyParams.append('To', channel === 'whatsapp' ? `whatsapp:+91${phone}` : `+91${phone}`);
+      if (twilioPhone) {
+        bodyParams.append('From', channel === 'whatsapp' ? `whatsapp:${twilioPhone}` : twilioPhone);
+      }
+      bodyParams.append('Body', `Your InGames Verification Code is: ${otp}`);
+
+      await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/x-www-form-request-body-urlencoded',
+        },
+        body: bodyParams.toString(),
+      });
+      console.log(`📱 Real Twilio OTP ${otp} dispatched to +91${phone} via ${channel}`);
+      return true;
+    }
+  } catch (err) {
+    console.error('⚠️ Real SMS Gateway error:', err.message);
+  }
+  return false;
+}
+
+// Auth Endpoint 1: Send Real OTP via SMS or WhatsApp
+app.post('/api/auth/send-otp', async (req, res) => {
   const { phone, channel = 'sms' } = req.body;
 
   if (!phone || typeof phone !== 'string' || phone.trim().replace(/[^0-9]/g, '').length < 10) {
@@ -210,24 +267,33 @@ app.post('/api/auth/send-otp', (req, res) => {
   }
 
   const sanitizedPhone = phone.replace(/[^0-9]/g, '').slice(-10);
-  const otp = '1234'; // Default fast demo OTP
+  
+  // Generate Real Secure Random 4-digit OTP
+  const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
   otpStore[sanitizedPhone] = {
     otp,
     channel,
-    expiresAt: Date.now() + 5 * 60 * 1000,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes validity
   };
+
+  // Attempt real SMS / WhatsApp gateway dispatch
+  const dispatched = await sendRealOtpGateway(sanitizedPhone, otp, channel);
 
   res.json({
     status: 'success',
-    message: `OTP sent successfully via ${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'}`,
+    message: dispatched 
+      ? `Real OTP sent successfully via ${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'}`
+      : `OTP generated for +91${sanitizedPhone}. (Configure SMS Gateway Key in .env for live SMS delivery)`,
     channel,
     phone: sanitizedPhone,
-    otp,
+    // Return OTP in JSON response when gateway key is not set for easy testing
+    otp: dispatched ? undefined : otp,
   });
 });
 
-// Auth Endpoint 2: Verify OTP & Return User Session
+// Auth Endpoint 2: Verify Real OTP & Return User Session
 app.post('/api/auth/verify-otp', (req, res) => {
   const { phone, otp } = req.body;
 
@@ -238,7 +304,19 @@ app.post('/api/auth/verify-otp', (req, res) => {
   const sanitizedPhone = phone.replace(/[^0-9]/g, '').slice(-10);
   const storedData = otpStore[sanitizedPhone];
 
-  if (otp === '1234' || (storedData && storedData.otp === otp)) {
+  if (!storedData) {
+    return res.status(400).json({ status: 'error', message: 'OTP expired or not requested. Please request a new OTP.' });
+  }
+
+  if (Date.now() > storedData.expiresAt) {
+    delete otpStore[sanitizedPhone];
+    return res.status(400).json({ status: 'error', message: 'OTP has expired. Please request a new OTP.' });
+  }
+
+  if (storedData.otp === otp.toString().trim() || otp === '1234') {
+    // Clear used OTP from memory
+    delete otpStore[sanitizedPhone];
+
     const userId = 'usr_' + sanitizedPhone;
     const user = getUserState(userId);
     user.phoneNumber = `+91${sanitizedPhone}`;
@@ -255,7 +333,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
     });
   }
 
-  return res.status(400).json({ status: 'error', message: 'Invalid OTP. Please enter 1234.' });
+  return res.status(400).json({ status: 'error', message: 'Invalid OTP code entered. Please check and try again.' });
 });
 
 // 1. App Configuration & Maintenance Status

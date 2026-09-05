@@ -1,0 +1,14 @@
+import 'package:flutter/material.dart';
+
+void registerIframeViewFactory(String viewId, String gameUrl) {}
+
+Widget buildPlatformIframe(String viewId) {
+  return const Center(
+    child: Text(
+      'HTML5 Games require Web environment',
+      style: TextStyle(color: Colors.white70),
+    ),
+  );
+}
+
+void setupWebMessageListener(void Function(String message) onMessage) {}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>InGames - 7 Up Down Dice Game</title>
+  <!-- Google Fonts: Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Last 100 Rounds Ribbon -->
+    <div class="history-card">
+      <div class="history-header">
+        <span>Last 100 Rounds</span>
+        <div class="legend-row">
+          <div class="dot-item"><div class="dot dot-green"></div>2-6</div>
+          <div class="dot-item"><div class="dot dot-blue"></div>7</div>
+          <div class="dot-item"><div class="dot dot-red"></div>8-12</div>
+        </div>
+      </div>
+      <div class="history-ribbon" id="historyRibbon">
+        <!-- Injected by HistoryPanel UI Component -->
+      </div>
+    </div>
+
+    <!-- Center Stage & Active Players -->
+    <div class="stage-row">
+      <div class="players-col" id="playersCol">
+        <!-- Injected by PlayersPanel UI Component -->
+      </div>
+
+      <!-- Glass Dome Roller -->
+      <div class="glass-dome-wrap">
+        <div class="dome-pedestal">
+          <div class="glass-cover"></div>
+          <div class="dice-cube" id="dice1">4</div>
+          <div class="dice-cube" id="dice2">3</div>
+        </div>
+      </div>
+
+      <!-- Timer Ring -->
+      <div class="timer-ring-wrap">
+        <svg class="timer-svg" viewBox="0 0 68 68">
+          <circle class="timer-circle-bg" cx="34" cy="34" r="30"></circle>
+          <circle class="timer-circle-progress" id="timerProgress" cx="34" cy="34" r="30"></circle>
+        </svg>
+        <div class="timer-text-val" id="timerText">12</div>
+      </div>
+    </div>
+
+    <!-- Middle Control Bar -->
+    <div class="mid-control-bar">
+      <div class="pill-info">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+        </svg>
+        <span>32</span>
+      </div>
+      <div class="pill-info">📊 Roadmap ▾</div>
+      <div class="pill-info">Multiple Mode</div>
+      <div class="pill-limit">Min <span class="limit-green">10</span> | Max <span class="limit-red">500</span></div>
+    </div>
+
+    <!-- 3 Main Bet Cards (2-6 DOWN, 7, 8-12 UP) -->
+    <div class="main-bets-grid" id="mainBetsGrid">
+      <!-- 2 - 6 DOWN -->
+      <div class="bet-card card-down" id="btnBetDown">
+        <div class="bet-badge" id="badgeDown">₹0</div>
+        <div class="card-title-lg">2 - 6</div>
+        <div class="card-odds">1 : 1</div>
+        <div class="card-subtext">DOWN</div>
+      </div>
+
+      <!-- 7 -->
+      <div class="bet-card card-seven" id="btnBetSeven">
+        <div class="bet-badge" id="badgeSeven">₹0</div>
+        <div class="card-title-lg">7</div>
+        <div class="card-odds">1 : 4</div>
+        <div class="card-subtext">LUCKY</div>
+      </div>
+
+      <!-- 8 - 12 UP -->
+      <div class="bet-card card-up" id="btnBetUp">
+        <div class="bet-badge" id="badgeUp">₹0</div>
+        <div class="card-title-lg">8 - 12</div>
+        <div class="card-odds">1 : 1</div>
+        <div class="card-subtext">UP</div>
+      </div>
+    </div>
+
+    <!-- Specific Number Bets (2 to 12) -->
+    <div class="num-bets-wrap" id="numBetsWrap">
+      <div class="num-row">
+        <div class="num-card" data-num="2" data-odds="26">
+          <div class="bet-badge" id="badgeNum2">₹0</div>
+          <span class="num-val num-red">2</span>
+          <span class="num-odds">1:26</span>
+        </div>
+        <div class="num-card" data-num="3" data-odds="12">
+          <div class="bet-badge" id="badgeNum3">₹0</div>
+          <span class="num-val num-red">3</span>
+          <span class="num-odds">1:12</span>
+        </div>
+        <div class="num-card" data-num="4" data-odds="8">
+          <div class="bet-badge" id="badgeNum4">₹0</div>
+          <span class="num-val num-red">4</span>
+          <span class="num-odds">1:8</span>
+        </div>
+        <div class="num-card" data-num="5" data-odds="6">
+          <div class="bet-badge" id="badgeNum5">₹0</div>
+          <span class="num-val num-red">5</span>
+          <span class="num-odds">1:6</span>
+        </div>
+        <div class="num-card" data-num="6" data-odds="5">
+          <div class="bet-badge" id="badgeNum6">₹0</div>
+          <span class="num-val num-red">6</span>
+          <span class="num-odds">1:5</span>
+        </div>
+      </div>
+
+      <div class="num-row">
+        <div class="num-card" data-num="8" data-odds="5">
+          <div class="bet-badge" id="badgeNum8">₹0</div>
+          <span class="num-val num-green">8</span>
+          <span class="num-odds">1:5</span>
+        </div>
+        <div class="num-card" data-num="9" data-odds="6">
+          <div class="bet-badge" id="badgeNum9">₹0</div>
+          <span class="num-val num-green">9</span>
+          <span class="num-odds">1:6</span>
+        </div>
+        <div class="num-card" data-num="10" data-odds="8">
+          <div class="bet-badge" id="badgeNum10">₹0</div>
+          <span class="num-val num-green">10</span>
+          <span class="num-odds">1:8</span>
+        </div>
+        <div class="num-card" data-num="11" data-odds="12">
+          <div class="bet-badge" id="badgeNum11">₹0</div>
+          <span class="num-val num-green">11</span>
+          <span class="num-odds">1:12</span>
+        </div>
+        <div class="num-card" data-num="12" data-odds="26">
+          <div class="bet-badge" id="badgeNum12">₹0</div>
+          <span class="num-val num-green">12</span>
+          <span class="num-odds">1:26</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RADIAL ARC CHIP SELECTOR POPUP -->
+    <div class="radial-chips-popup" id="chipRadialPopup">
+      <div class="pop-chip pop-10" data-val="10">10</div>
+      <div class="pop-chip pop-50" data-val="50">50</div>
+      <div class="pop-chip pop-100" data-val="100">100</div>
+      <div class="pop-chip pop-500" data-val="500">500</div>
+      <div class="pop-chip pop-1000" data-val="1000">1K</div>
+    </div>
+
+    <!-- 100% MATCH 7 UP DOWN BOTTOM CONTROL BAR -->
+    <div class="bottom-bar">
+      <!-- Left User Info & Balance -->
+      <div class="user-profile-left">
+        <img src="/assets/avatar/avatar_1.png" class="user-avatar-circle" onerror="this.src='/Assets/Avatar/avatar_1.png'" />
+        <div class="user-text-col">
+          <span class="user-id-txt" id="userNameText">Player</span>
+          <div class="balance-header-row" style="margin-top: 2px;">
+            <span>Balance</span>
+            <span class="balance-green" id="userBalanceText">₹800.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Green Arch & Prominent 3D Chip -->
+      <div class="chip-center-wrap">
+        <div class="chip-arch-tab" id="mainChipBtn">
+          <div class="main-3d-chip" id="mainChipFace">10</div>
+        </div>
+      </div>
+
+      <!-- Right Action Section & Your Bet -->
+      <div class="right-action-section">
+        <div class="your-bet-row">
+          <span>Your Bet</span>
+          <span class="your-bet-green" id="yourBetText">₹0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Win Toast -->
+    <div class="win-toast" id="winToast">
+      🎉 YOU WON ₹0!
+    </div>
+  </div>
+
+  <!-- Entry Script (ES6 Module) -->
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

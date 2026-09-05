@@ -23,21 +23,26 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Auth0 Configuration (with graceful fallback)
+// Auth0 Configuration (Real Production Setup)
 const auth0Config = {
   authRequired: false,
   auth0Logout: true,
-  secret: process.env.SECRET || 'a_default_secret_key_32_characters_long_for_auth0',
+  secret: process.env.SECRET || '77c363e5304af93f35a2e3c8881801772e13bd1a15cb208729c22350e1d8593c',
   baseURL: process.env.BASE_URL || `http://localhost:${PORT}`,
-  clientID: process.env.CLIENT_ID || 'dummy_client_id',
-  issuerBaseURL: process.env.ISSUER_BASE_URL || 'https://auth0.com',
+  clientID: process.env.CLIENT_ID || 'WxcN6MSEPSfkoFuDGRv1FhdRN4hpOQVe',
+  clientSecret: process.env.CLIENT_SECRET || 'FNPbQnnspnGQeq919zAWoH2KOHW8JK6n5Eic5GFZeW5Vh15rv9eomWUcrLBoxcOY',
+  issuerBaseURL: process.env.ISSUER_BASE_URL || 'https://dev-d5lt4jxvqrvrx1rp.us.auth0.com',
+  authorizationParams: {
+    response_type: 'code',
+    connection: 'google-oauth2',
+  },
 };
 
 // Enable Auth0 middleware if configured
-if (process.env.CLIENT_ID && process.env.ISSUER_BASE_URL && process.env.CLIENT_ID !== 'your_auth0_client_id') {
+if (process.env.CLIENT_ID || auth0Config.clientID) {
   try {
     app.use(auth(auth0Config));
-    console.log('✅ Auth0 authentication enabled.');
+    console.log('✅ Real Auth0 Google OAuth authentication enabled.');
   } catch (err) {
     console.warn('⚠️ Auth0 initialization deferred:', err.message);
   }

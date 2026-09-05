@@ -315,7 +315,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
     return res.status(400).json({ status: 'error', message: 'OTP has expired. Please request a new OTP.' });
   }
 
-  if (storedData.otp === otp.toString().trim() || otp === '1234') {
+  if (storedData.otp === otp.toString().trim()) {
     // Clear used OTP from memory
     delete otpStore[sanitizedPhone];
 

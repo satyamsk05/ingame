@@ -26,14 +26,7 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
-    } catch (_) {
-      // Fallback response for offline mode testing
-      return {
-        'status': 'success',
-        'message': 'OTP sent via $channel',
-        'otp': '1234',
-      };
-    }
+    } catch (_) {}
     return null;
   }
 
@@ -54,16 +47,7 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
-    } catch (_) {
-      // Fallback for offline mode testing
-      if (otp == '1234') {
-        return {
-          'status': 'success',
-          'message': 'Login successful',
-          'token': 'jwt_mock_token_1234',
-        };
-      }
-    }
+    } catch (_) {}
     return null;
   }
 

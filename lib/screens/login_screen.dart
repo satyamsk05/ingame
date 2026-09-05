@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       setState(() {
         _enteredOtp = '';
-        _errorMessage = response?['message'] ?? 'Invalid OTP code. Enter 1234.';
+        _errorMessage = response?['message'] ?? 'Invalid OTP code entered. Please try again.';
       });
     }
   }

@@ -230,10 +230,12 @@ async function sendRealOtpGateway(phone, otp, channel) {
       await fetch(`https://2factor.in/API/V1/${twoFactorKey}/SMS/+91${phone}/${otp}/AUTOGEN`);
       console.log(`📱 Real 2Factor OTP ${otp} dispatched to +91${phone}`);
       return true;
-    } else if (twilioSid && twilioAuth && twilioSid !== 'your_twilio_sid') {
-      // Twilio SMS/WhatsApp
+    } else if (twilioSid && (twilioAuth || process.env.TWILIO_API_SECRET) && twilioSid !== 'your_twilio_sid') {
+      // Twilio SMS/WhatsApp (Supports Account SID + Auth Token OR API Key SID + API Secret)
+      const userSid = process.env.TWILIO_API_KEY_SID || twilioSid;
+      const passSecret = process.env.TWILIO_API_SECRET || twilioAuth;
       const twilioPhone = process.env.TWILIO_PHONE_NUMBER || '';
-      const authHeader = 'Basic ' + Buffer.from(`${twilioSid}:${twilioAuth}`).toString('base64');
+      const authHeader = 'Basic ' + Buffer.from(`${userSid}:${passSecret}`).toString('base64');
       const bodyParams = new URLSearchParams();
       bodyParams.append('To', channel === 'whatsapp' ? `whatsapp:+91${phone}` : `+91${phone}`);
       if (twilioPhone) {
@@ -245,7 +247,7 @@ async function sendRealOtpGateway(phone, otp, channel) {
         method: 'POST',
         headers: {
           'Authorization': authHeader,
-          'Content-Type': 'application/x-www-form-request-body-urlencoded',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: bodyParams.toString(),
       });

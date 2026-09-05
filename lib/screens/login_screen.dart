@@ -255,8 +255,56 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final response = await ApiService.loginWithGoogle(
+      email: 'satyam.gamer@gmail.com',
+      name: 'Satyam Kumar',
+      picture: 'assets/avatar/avatar_1.png',
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (response != null && response['status'] == 'success') {
+      widget.onLoginSuccess(response);
+    } else {
+      setState(() {
+        _errorMessage = response?['message'] ?? 'Google Sign-In failed. Try again.';
+      });
+    }
+  }
+
+  Widget _buildGoogleLogoIcon({double size = 28}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+      padding: const EdgeInsets.all(3),
+      child: Center(
+        child: Text(
+          'G',
+          style: GoogleFonts.poppins(
+            color: const Color(0xFF4285F4),
+            fontSize: size * 0.65,
+            fontWeight: FontWeight.w900,
+            height: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
   // ----------------------------------------------------
-  // STEP 1: REGISTER METHOD SELECTION SCREEN (Dark Mode & Aligned from Bottom)
+  // STEP 1: REGISTER METHOD SELECTION SCREEN (Google Sign-In Focus)
   // ----------------------------------------------------
   Widget _buildRegisterMethodView() {
     return Column(
@@ -268,45 +316,27 @@ class _LoginScreenState extends State<LoginScreen> {
           child: _buildTopHeaderBar(onBackTap: null),
         ),
 
-        // Spacer pushes all content down to start from the bottom section
+        // Spacer pushes content to bottom
         const Spacer(),
 
-
-        // Header Section: User Plus Icon & Register Title (Dark Mode)
+        // Header Section
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // User Icon (👤+ or 🔑)
-              Row(
-                children: [
-                  Icon(
-                    _isRegisterMode ? Icons.person_outline_rounded : Icons.lock_outline_rounded,
-                    size: 42,
-                    color: Colors.white,
-                  ),
-                  if (_isRegisterMode)
-                    Transform.translate(
-                      offset: const Offset(-8, -14),
-                      child: const Text(
-                        '+',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
+              const Icon(
+                Icons.account_circle_rounded,
+                size: 44,
+                color: Colors.white,
               ),
               const SizedBox(height: 8),
 
               Text(
-                _isRegisterMode ? 'Register' : 'Login',
+                'Welcome to InGames',
                 style: GoogleFonts.poppins(
                   color: Colors.white,
-                  fontSize: 38,
+                  fontSize: 32,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.5,
                 ),
@@ -314,176 +344,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 4),
 
-              // Subtitle Toggle: Got an account? Log in here -> / Need an account? Register here ->
-              Row(
-                children: [
-                  Text(
-                    _isRegisterMode ? 'Got an account?' : 'Need an account?',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white60,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isRegisterMode = !_isRegisterMode;
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        Text(
-                          _isRegisterMode ? 'Log in here' : 'Register here',
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF007AFF),
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Color(0xFF007AFF),
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Two Big Cards (WhatsApp with real logo & Number OTP) in Dark Glass Theme
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Row(
-            children: [
-              // Card 1: WhatsApp
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _otpChannel = 'whatsapp';
-                      _currentStep = LoginStep.enterPhone;
-                    });
-                  },
-                  child: Container(
-                    height: 165,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF162232),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildWhatsAppIcon(size: 38),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'with',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white54,
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              'WhatsApp',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 16),
-
-              // Card 2: Number OTP
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _otpChannel = 'sms';
-                      _currentStep = LoginStep.enterPhone;
-                    });
-                  },
-                  child: Container(
-                    height: 165,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF162232),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF007AFF).withValues(alpha: 0.18),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.smartphone_rounded,
-                            color: Color(0xFF007AFF),
-                            size: 28,
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'with',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white54,
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              'Number OTP',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+              Text(
+                'Sign in with your Google account to start playing',
+                style: GoogleFonts.poppins(
+                  color: Colors.white60,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
@@ -492,24 +358,105 @@ class _LoginScreenState extends State<LoginScreen> {
 
         const SizedBox(height: 28),
 
-        // Bottom Left Dark Back Arrow Button
-        Padding(
-          padding: const EdgeInsets.only(left: 24.0, bottom: 24.0),
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E2B3C),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        if (_errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 8.0),
+            child: Text(
+              _errorMessage!,
+              style: GoogleFonts.poppins(
+                color: const Color(0xFFFF5252),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            child: const Icon(
-              Icons.arrow_back_rounded,
-              color: Colors.white,
-              size: 24,
+          ),
+
+        // Primary Google Sign-In Hero Button
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: GestureDetector(
+            onTap: _isLoading ? null : _handleGoogleLogin,
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_isLoading)
+                    const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Color(0xFF4285F4),
+                      ),
+                    )
+                  else ...[
+                    _buildGoogleLogoIcon(size: 28),
+                    const SizedBox(width: 14),
+                    Text(
+                      'Continue with Google',
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF1E2B3C),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
+
+        const SizedBox(height: 16),
+
+        // Secondary Option: Quick Guest Play Button
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: GestureDetector(
+            onTap: _handleSkipLogin,
+            child: Container(
+              height: 54,
+              decoration: BoxDecoration(
+                color: const Color(0xFF162232),
+                borderRadius: BorderRadius.circular(27),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.flash_on_rounded,
+                    color: Color(0xFFFFD700),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Instant Play as Guest',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white70,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 32),
       ],
     );
   }

@@ -357,6 +357,31 @@ app.post('/api/auth/verify-otp', (req, res) => {
   return res.status(400).json({ status: 'error', message: 'Invalid OTP code entered. Please check and try again.' });
 });
 
+// Auth Endpoint 3: Google One-Click OAuth Login
+app.post('/api/auth/google', (req, res) => {
+  const { email, name, picture, googleId } = req.body;
+  const userEmail = email || 'player@gmail.com';
+  const cleanId = (googleId || userEmail.replace(/[^a-zA-Z0-9]/g, '')).slice(0, 20);
+  const userId = 'usr_g_' + cleanId;
+
+  const user = getUserState(userId);
+  if (name) user.username = name;
+  user.email = userEmail;
+  if (picture) user.avatarPath = picture;
+
+  const totalBalance = user.depositBalance + user.winningsBalance + user.rewardsBalance;
+
+  return res.json({
+    status: 'success',
+    message: 'Google Sign-In successful',
+    token: 'jwt_google_token_' + userId,
+    data: {
+      ...user,
+      totalBalance,
+    },
+  });
+});
+
 // 1. App Configuration & Maintenance Status
 app.get('/api/config', (req, res) => {
   res.json({

@@ -231,17 +231,25 @@ async function sendRealOtpGateway(phone, otp, channel) {
       console.log(`📱 Real 2Factor OTP ${otp} dispatched to +91${phone}`);
       return true;
     } else if (twilioSid && (twilioAuth || process.env.TWILIO_API_SECRET) && twilioSid !== 'your_twilio_sid') {
-      // Twilio SMS/WhatsApp (Supports Account SID + Auth Token OR API Key SID + API Secret)
+      // Twilio SMS / WhatsApp (Supports ContentSid templates for WhatsApp & standard SMS)
       const userSid = process.env.TWILIO_API_KEY_SID || twilioSid;
       const passSecret = process.env.TWILIO_API_SECRET || twilioAuth;
-      const twilioPhone = process.env.TWILIO_PHONE_NUMBER || '';
+      const twilioPhone = process.env.TWILIO_PHONE_NUMBER || '+17372212163';
+      const contentSid = process.env.TWILIO_WHATSAPP_CONTENT_SID || 'HX25161c213d71bb75e073ead06f38fbbd';
+
       const authHeader = 'Basic ' + Buffer.from(`${userSid}:${passSecret}`).toString('base64');
       const bodyParams = new URLSearchParams();
-      bodyParams.append('To', channel === 'whatsapp' ? `whatsapp:+91${phone}` : `+91${phone}`);
-      if (twilioPhone) {
-        bodyParams.append('From', channel === 'whatsapp' ? `whatsapp:${twilioPhone}` : twilioPhone);
+
+      if (channel === 'whatsapp') {
+        bodyParams.append('To', `whatsapp:+91${phone}`);
+        bodyParams.append('From', `whatsapp:${twilioPhone}`);
+        bodyParams.append('ContentSid', contentSid);
+        bodyParams.append('ContentVariables', JSON.stringify({ "1": otp }));
+      } else {
+        bodyParams.append('To', `+91${phone}`);
+        bodyParams.append('From', twilioPhone);
+        bodyParams.append('Body', `Your InGames Verification Code is: ${otp}`);
       }
-      bodyParams.append('Body', `Your InGames Verification Code is: ${otp}`);
 
       const twRes = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
         method: 'POST',

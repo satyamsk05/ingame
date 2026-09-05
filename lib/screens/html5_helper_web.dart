@@ -9,7 +9,7 @@ void registerIframeViewFactory(String viewId, String gameUrl) {
       final iframe = web.document.createElement('iframe') as web.HTMLIFrameElement;
       const serverDomain = String.fromEnvironment(
         'SERVER_DOMAIN',
-        defaultValue: 'https://ingame-backend.onrender.com',
+        defaultValue: 'https://ingame-x545.onrender.com',
       );
       iframe.src = '$serverDomain$gameUrl';
       iframe.style.border = 'none';

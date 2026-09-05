@@ -57,6 +57,9 @@ yarn-error.log*
 agent/
 .claude/
 graphify-out/
-skills-lock.json
-*.pdf
+# Environment & Secret files
+.env
+*.env
+!.env.example
+
 

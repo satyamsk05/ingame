@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
+import '../services/api_service.dart';
 
 class PromoBanner extends StatelessWidget {
   final VoidCallback onTap;
@@ -144,7 +145,7 @@ class PromoBanner extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 6, bottom: 6, right: 6),
                 child: Image.network(
-                  'http://localhost:5050/banners/banner.png',
+                  '${ApiService.serverDomain}/banners/banner.png',
                   height: 153,
                   fit: BoxFit.contain,
                   alignment: Alignment.centerRight,

@@ -2,7 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:5050/api';
+  static String serverDomain = const String.fromEnvironment(
+    'SERVER_DOMAIN',
+    defaultValue: 'https://ingame-backend.onrender.com',
+  );
+
+  static String get baseUrl => '$serverDomain/api';
 
   // 0a. Send OTP via SMS or WhatsApp
   static Future<Map<String, dynamic>?> sendOtp({

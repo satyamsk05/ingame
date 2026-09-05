@@ -9,25 +9,39 @@ class ApiService {
 
   static String get baseUrl => '$serverDomain/api';
 
+  static List<String> get _candidateBaseUrls => [
+        '$serverDomain/api',
+        'http://localhost:5050/api',
+        'http://127.0.0.1:5050/api',
+        'http://10.0.2.2:5050/api',
+      ];
+
   // 0a. Send OTP via SMS or WhatsApp
   static Future<Map<String, dynamic>?> sendOtp({
     required String phone,
     String channel = 'sms',
   }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/send-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'phone': phone,
-          'channel': channel,
-        }),
-      );
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      }
-    } catch (_) {}
-    return null;
+    for (final base in _candidateBaseUrls) {
+      try {
+        final response = await http.post(
+          Uri.parse('$base/auth/send-otp'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': phone,
+            'channel': channel,
+          }),
+        ).timeout(const Duration(seconds: 8));
+
+        final data = jsonDecode(response.body);
+        if (response.statusCode == 200) {
+          serverDomain = base.replaceAll('/api', '');
+          return data;
+        } else if (data is Map<String, dynamic> && data['message'] != null) {
+          return data;
+        }
+      } catch (_) {}
+    }
+    return {'status': 'error', 'message': 'Cannot connect to backend server. Check server connection.'};
   }
 
   // 0b. Verify OTP & Authenticate User
@@ -35,20 +49,27 @@ class ApiService {
     required String phone,
     required String otp,
   }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/verify-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'phone': phone,
-          'otp': otp,
-        }),
-      );
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      }
-    } catch (_) {}
-    return null;
+    for (final base in _candidateBaseUrls) {
+      try {
+        final response = await http.post(
+          Uri.parse('$base/auth/verify-otp'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone': phone,
+            'otp': otp,
+          }),
+        ).timeout(const Duration(seconds: 8));
+
+        final data = jsonDecode(response.body);
+        if (response.statusCode == 200) {
+          serverDomain = base.replaceAll('/api', '');
+          return data;
+        } else if (data is Map<String, dynamic> && data['message'] != null) {
+          return data;
+        }
+      } catch (_) {}
+    }
+    return {'status': 'error', 'message': 'Cannot connect to backend server. Check server connection.'};
   }
 
   // 1. Get App Configuration & Online Users Count
